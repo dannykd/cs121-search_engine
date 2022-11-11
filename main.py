@@ -22,7 +22,7 @@ def buildIndex():
     return invertedIndex
         
 
-#todo: associate docIDs with urls
+#todo: associate docIDs with urls   
 
 
         
