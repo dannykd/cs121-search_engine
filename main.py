@@ -3,6 +3,7 @@
 
 documents = [] #temp for now will store all .jsons
 
+test = "lol"
 
 
 def buildIndex():
