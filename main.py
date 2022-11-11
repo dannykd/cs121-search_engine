@@ -1,3 +1,5 @@
+import re
+
 class Posting:
     def __init__(self, docid, tfidf):
         self.docid = docid # int n, will map to file in different dict
