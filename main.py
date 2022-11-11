@@ -3,6 +3,7 @@
 
 
 
+#test
 
 def getBatch(): 
     #gets a batch of documents from /DEV, if there's no more documents it returns an empty list
