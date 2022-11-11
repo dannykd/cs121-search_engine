@@ -1,4 +1,7 @@
-import re
+import re, json
+
+# TODO: Need to create a class called BatchDocument which fields (url, content, encoding), perhaps also tokenize
+# within the BatchDocument class to avoid doing it within getBatch so that we could do BatchDocument.tokens (a list of them)
 
 class Posting:
     def __init__(self, docid, tfidf):
@@ -6,9 +9,11 @@ class Posting:
         self.tfidf = tfidf # frequency or count of token in given document
         self.fields = []
 
-def getBatch(): 
+def getBatch(batchSize): 
     #gets a batch of documents from /DEV, if there's no more documents it returns an empty list
 
+    # TODO: Go through the DEV folder and use json.load on all the files so that we can extract the 
+    # object and obtain the url, content/tokens and encoding. Then return a list of BatchDocument objects.
     return None
 
 def sortAndWriteToDisk(index, fileName):
@@ -20,6 +25,8 @@ def buildIndex():
     invertedIndex = dict()
     batch = 0
     while True:
+        # TODO: add a constant batch size
+        # TODO: be able to call documentsInBatch[i].tokens to get the tokens.
         documentsInBatch = getBatch()
         if not documentsInBatch:
             break #end the loop if there's no more documents to process
@@ -56,7 +63,7 @@ def buildIndex():
 
 
     
-def tokenize():
+def tokenize(text):
     #return a list of tokens (no duplicates)
     return re.findall('[a-zA-Z0-9]+', text)
 
