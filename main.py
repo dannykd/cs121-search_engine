@@ -56,7 +56,7 @@ def buildIndex():
     
 def tokenize():
     #return a list of tokens (no duplicates)
-    return []
+    return re.findall('[a-zA-Z0-9]+', text)
 
 
 if __name__ == '__main__':
