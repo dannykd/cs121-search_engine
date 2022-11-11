@@ -1,9 +1,8 @@
-
-
-
-
-
-#test
+class Posting:
+    def __init__(self, docid, tfidf):
+        self.docid = docid # int n, will map to file in different dict
+        self.tfidf = tfidf # frequency or count of token in given document
+        self.fields = []
 
 def getBatch(): 
     #gets a batch of documents from /DEV, if there's no more documents it returns an empty list
@@ -34,25 +33,31 @@ def buildIndex():
                 else:
                     invertedIndex[token] = []
             
-        fileName = f'disk-{batch}.txt'
+        fileName = f'indexes/disk-{batch}.txt'
         sortAndWriteToDisk(invertedIndex, fileName)
         invertedIndex.clear()
 
+    # merge index back into one dictionary mergedIndex
+    mergedIndex = None
+    print(f'Number of Documents : {docID}')
+    print(f'Number of Unique Tokens : {len(mergedIndex.keys())}')
+
+    # write mergedIndex to an output file to read file size on disk
+    mergedFileName = 'indexes/final.txt'
+    # write to mergedFileName
+
+    #print(f'Size of Index on Disk : FIND FUNCTION TO DO THIS') -- reading size of mergedFileName
     return None
         
 
 #todo: associate docIDs with urls   
 
 
-        
-
+    
 def tokenize():
     #return a list of tokens (no duplicates)
     return []
 
 
-class Posting:
-    def __init__(self, docid, tfidf):
-        self.docid = docid # int n, will map to file in different dict
-        self.tfidf = tfidf # frequency or count of token in given document
-        self.fields = []
+if __name__ == '__main__':
+    buildIndex()
