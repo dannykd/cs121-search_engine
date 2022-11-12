@@ -21,6 +21,9 @@ class Posting:
         self.tfidf = tfidf # frequency or count of token in given document
         self.fields = []
 
+    def to_dict(self):
+        return dict(docid=self.docid, tfidf=self.tfidf, fields=self.fields)
+
 def getBatch(batchSize, batchNumber, fileNames, folderPath): 
     #gets a batch of documents from /DEV, if there's no more documents it returns an empty list
 
@@ -98,10 +101,10 @@ def buildIndex():
                 tokensWithNoDuplicate = set(document.tokens)
                 for token in tokensWithNoDuplicate:
                     if token in invertedIndex.keys():
-                        docPosting = Posting(docID, document.tokens.count(token))
+                        docPosting = Posting(docID, document.tokens.count(token)).to_dict()
                         invertedIndex[token].append(docPosting)
                     else:
-                        invertedIndex[token] = [Posting(docID, document.tokens.count(token))]
+                        invertedIndex[token] = [Posting(docID, document.tokens.count(token)).to_dict()]
 
             batchFileNumber += 1 
             fileName = f'indexes/disk-{batchFileNumber}.txt'
