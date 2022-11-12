@@ -24,31 +24,29 @@ class Posting:
 def getBatch(batchSize, batchNumber, fileNames, folderPath): 
     #gets a batch of documents from /DEV, if there's no more documents it returns an empty list
 
-    # TODO: Go through the DEV folder and use json.load on all the files so that we can extract the 
-    # object and obtain the url, content/tokens and encoding. Then return a list of BatchDocument objects.
-
     batchStartPosition = batchSize * (batchNumber-1)
     batchEndPosition = batchStartPosition + batchSize
 
-    # print("All: " + str(fileNames))
-    # print("Getting batch number " + str(batchNumber) + " of size " + str(batchSize) + " for " + folderPath)
-
     batchFileNames = []
+    
+    # If batch size exceeds the number of files and it's the first batch, then return all files
     if (batchSize > len(fileNames) and batchNumber == 1):
         batchFileNames = fileNames
+    # If batch size exceeds the number of files, then there can only be one batch. Return [] if batch number exceeds 1.
     elif (batchSize > len(fileNames) and batchNumber != 1):
         return []
+    # Gets the filenames for the current batch
     else:
         batchFileNames = fileNames[batchStartPosition:batchEndPosition]
 
     batchDocuments = []
 
+    if batchFileNames:
+        print("Getting batch number " + str(batchNumber) + " of size " + str(batchSize) + " for " + folderPath)
+
     for fileName in batchFileNames:
         
         file = open(folderPath + "/" + fileName)
-  
-        # returns JSON object as 
-        # a dictionary
         data = json.load(file)
         
         url = data["url"]
@@ -68,27 +66,36 @@ def sortAndWriteToDisk(index, fileName):
 def buildIndex():
     docID = 0
     invertedIndex = dict()
-    batch = 0
-    while True:
-        # TODO: add a constant batch size
-        # TODO: be able to call documentsInBatch[i].tokens to get the tokens
-        documentsInBatch = getBatch()
-        if not documentsInBatch:
-            break #end the loop if there's no more documents to process
-        batch +=1
-        for document in documentsInBatch:
-            docID+=1
-            tokensWithNoDuplicate = set(document.tokens)
-            for token in tokensWithNoDuplicate:
-                if token in invertedIndex.keys():
-                    docPosting = Posting(docID, document.tokens.count(token), [])
-                    invertedIndex[token].append(docPosting)
-                else:
-                    invertedIndex[token] = []
+    folders = getFolders("DEV")
+    batchFileNumber = 0
+    batchSize = 250
+    for folder in folders:
+        fileNames = getFilesInFolder(folder)
+        currBatch = 1
+        while True:
+            documentsInBatch = getBatch(batchSize, currBatch, fileNames, folder)
+            if not documentsInBatch:
+                break #end the loop if there's no more documents to process
+            currBatch +=1
+            for document in documentsInBatch:
+                docID+=1
+                tokensWithNoDuplicate = set(document.tokens)
+                for token in tokensWithNoDuplicate:
+                    if token in invertedIndex.keys():
+                        docPosting = Posting(docID, document.tokens.count(token))
+                        invertedIndex[token].append(docPosting)
+                    else:
+                        invertedIndex[token] = [Posting(docID, document.tokens.count(token))]
+
+            batchFileNumber += 1 
+            fileName = f'indexes/disk-{batchFileNumber}.txt'
             
-        fileName = f'indexes/disk-{batch}.txt'
-        sortAndWriteToDisk(invertedIndex, fileName)
-        invertedIndex.clear()
+            f = open(fileName, "w")
+            f.write(str(invertedIndex))
+            f.close()
+
+            sortAndWriteToDisk(invertedIndex, fileName)
+            invertedIndex.clear()
 
     # merge index back into one dictionary mergedIndex
     mergedIndex = None
@@ -115,16 +122,15 @@ def getFolders(parentFolder):
     subfolders = sorted(os.listdir(parentFolder))
     subfolders.remove(".DS_Store")
     # print(sorted(dir_list))
-    subFoldersWithParentPath = [("DEV/" + i) for i in subfolders]
+    subFoldersWithParentPath = [(parentFolder + "/" + i) for i in subfolders]
     return sorted(subFoldersWithParentPath)
 
 def getFilesInFolder(folderName):
-
     files = sorted(os.listdir(folderName))
     return files
 
 if __name__ == '__main__':
-    # buildIndex()
+    buildIndex()
 
     # files = ['25ab7a717ab32cbdc126dd69dc405451d63b7eb55b21d4384a2847cd802e73ec.json', '358e172599eeb10e5fe57b7befea5113233b334eb13492c4adf694945c69b4d1.json', '59cd2d37c5ff77fd43da46c122c76f1df4b288ab029182c901c11ee01794896a.json', '7ab99efdcd4dfa1251cbc3ef75875758491308240d6e8efc633599b7c094551b.json', '897b5c4dc19303a9a3fffd0d9d49fc831d7b52072b29446f97900ac58fc4181a.json', 'da5aff1b5ca2bad6609f97f11c91fef3a503ded6d9d0f14592793c9391b92fd9.json']
     # batch = getBatch(10, 1, files, "DEV/xtune_ics_uci_edu")
@@ -134,14 +140,10 @@ if __name__ == '__main__':
 
 
 
-    folders = getFolders("DEV")
-    print(folders)
-    for folder in folders:
-        fileNames = getFilesInFolder(folder)
+    # folders = getFolders("DEV")
+    # print(folders)
+    # for folder in folders:
+    #     fileNames = getFilesInFolder(folder)
         
-        batch = getBatch(500, 1, fileNames, folder)
-
-        for b in batch:
-            if (b.url == "http://asterix.ics.uci.edu/fuzzyjoin/CHANGELOG.html"):
-                print(b.tokens)
-        # print(batch)
+    #     batch = getBatch(100, 1, fileNames, folder)
+    #     # print(batch)
