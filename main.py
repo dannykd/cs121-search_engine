@@ -121,8 +121,8 @@ def buildIndex():
     # write mergedIndex to an output file to read file size on disk
     
     # write to mergedFileName
-
-    #print(f'Size of Index on Disk : FIND FUNCTION TO DO THIS') -- reading size of mergedFileName
+    fileSize = os.path.getsize('/indexes/final.txt')
+    print(f'Size of Index on Disk : {fileSize}')
     return None
         
 
