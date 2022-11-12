@@ -96,11 +96,10 @@ def buildIndex():
         batch +=1
         for document in documentsInBatch:
             docID+=1
-            tokens = tokenize(document)
-            tokensWithNoDuplicate = set(tokens)
+            tokensWithNoDuplicate = set(document.tokens)
             for token in tokensWithNoDuplicate:
                 if token in invertedIndex.keys():
-                    docPosting = Posting(docID, tokens.count(token), [])
+                    docPosting = Posting(docID, document.tokens.count(token), [])
                     invertedIndex[token].append(docPosting)
                 else:
                     invertedIndex[token] = []
