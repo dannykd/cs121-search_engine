@@ -1,9 +1,20 @@
 import re, json
 import os
+from bs4 import BeautifulSoup
 
-# TODO: Need to create a class called BatchDocument which fields (url, content, encoding), perhaps also tokenize
-# within the BatchDocument class to avoid doing it within getBatch so that we could do BatchDocument.tokens (a list of them)
-
+# BatchDocument takes in a url, the content, and the encoding for any specific json file given to us in the DEV folder
+# given the content, BatchDocument will tokenize the content and save it into a variable, tokens
+class BatchDocument:
+    def __init__(self, url, content, encoding):
+        self.url = url
+        self.encoding = encoding
+        # create beautiful soup object to parse the given content string and find the body tag and the content within it
+        soup = BeautifulSoup(content, "html.parser")
+        textContent = ""
+        for tag in soup.find_all('body'):
+            textContent += " " + tag.getText()
+        self.tokens = tokenize(textContent) # return the tokenized textContent
+    
 class Posting:
     def __init__(self, docid, tfidf):
         self.docid = docid # int n, will map to file in different dict
@@ -75,7 +86,7 @@ def buildIndex():
     batch = 0
     while True:
         # TODO: add a constant batch size
-        # TODO: be able to call documentsInBatch[i].tokens to get the tokens.
+        # TODO: be able to call documentsInBatch[i].tokens to get the tokens
         documentsInBatch = getBatch()
         if not documentsInBatch:
             break #end the loop if there's no more documents to process
