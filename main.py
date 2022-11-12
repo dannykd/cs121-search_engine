@@ -24,8 +24,13 @@ class Posting:
     def to_dict(self):
         return dict(docid=self.docid, tfidf=self.tfidf, fields=self.fields)
 
+import time
+
 def getBatch(batchSize, batchNumber, fileNames, folderPath): 
     #gets a batch of documents from /DEV, if there's no more documents it returns an empty list
+
+    start_time = time.time()
+
 
     batchStartPosition = batchSize * (batchNumber-1)
     batchEndPosition = batchStartPosition + batchSize
@@ -59,6 +64,7 @@ def getBatch(batchSize, batchNumber, fileNames, folderPath):
         batchDocument = BatchDocument(url, content, encoding)
         batchDocuments.append(batchDocument)
         
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     return batchDocuments
 
@@ -71,7 +77,7 @@ def mergeDisksIntoDict():
     mergedIndex = dict()
     indexesOnDisk = getFilesInFolder('indexes')
     for index in indexesOnDisk:
-        with open('myfile.json' , 'r+') as indexFile:
+        with open(f'indexes/{index}' , 'r+') as indexFile:
             currentIndex = json.load(indexFile)
             mergedIndex.update(currentIndex)
     
@@ -87,7 +93,7 @@ def buildIndex():
     invertedIndex = dict()
     folders = getFolders("DEV")
     batchFileNumber = 0
-    batchSize = 250
+    batchSize = 500
     for folder in folders:
         fileNames = getFilesInFolder(folder)
         currBatch = 1
@@ -96,6 +102,7 @@ def buildIndex():
             if not documentsInBatch:
                 break #end the loop if there's no more documents to process
             currBatch +=1
+            
             for document in documentsInBatch:
                 docID+=1
                 tokensWithNoDuplicate = set(document.tokens)
@@ -121,7 +128,7 @@ def buildIndex():
     # write mergedIndex to an output file to read file size on disk
     
     # write to mergedFileName
-    fileSize = os.path.getsize('/indexes/final.txt')
+    fileSize = os.path.getsize('indexes/final.txt')
     print(f'Size of Index on Disk : {fileSize}')
     return None
         
@@ -146,7 +153,10 @@ def getFilesInFolder(folderName):
     return files
 
 if __name__ == '__main__':
+    start = time.time()
     buildIndex()
+    print("--- FINISHED BUILDING INDICES IN %s seconds ---" % (time.time() - start))
+    print("--- FINISHED BUILDING INDICES IN %s minutes ---" % (time.time() - start / 60))
 
     # files = ['25ab7a717ab32cbdc126dd69dc405451d63b7eb55b21d4384a2847cd802e73ec.json', '358e172599eeb10e5fe57b7befea5113233b334eb13492c4adf694945c69b4d1.json', '59cd2d37c5ff77fd43da46c122c76f1df4b288ab029182c901c11ee01794896a.json', '7ab99efdcd4dfa1251cbc3ef75875758491308240d6e8efc633599b7c094551b.json', '897b5c4dc19303a9a3fffd0d9d49fc831d7b52072b29446f97900ac58fc4181a.json', 'da5aff1b5ca2bad6609f97f11c91fef3a503ded6d9d0f14592793c9391b92fd9.json']
     # batch = getBatch(10, 1, files, "DEV/xtune_ics_uci_edu")
