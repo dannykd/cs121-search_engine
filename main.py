@@ -62,9 +62,25 @@ def getBatch(batchSize, batchNumber, fileNames, folderPath):
     return batchDocuments
 
 def sortAndWriteToDisk(index, fileName):
-    #adds the index to a .txt file
+    with open(fileName,'w') as diskFile: #opens file or creates file or rewrites file 
+      diskFile.write(json.dumps(index, sort_keys=True))
     return None
+
+def mergeDisksIntoDict():
+    mergedIndex = dict()
+    indexesOnDisk = getFilesInFolder('indexes')
+    for index in indexesOnDisk:
+        with open('myfile.json' , 'r+') as indexFile:
+            currentIndex = json.load(indexFile)
+            mergedIndex.update(currentIndex)
     
+    sortAndWriteToDisk(mergedIndex, 'indexes/final.txt' )
+    return mergedIndex
+            
+
+
+
+
 def buildIndex():
     docID = 0
     invertedIndex = dict()
