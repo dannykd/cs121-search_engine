@@ -27,26 +27,11 @@ def getBatch(batchSize, batchNumber, fileNames, folderPath):
     # TODO: Go through the DEV folder and use json.load on all the files so that we can extract the 
     # object and obtain the url, content/tokens and encoding. Then return a list of BatchDocument objects.
 
-    # path = 'DEV'
-    # dir_list = sorted(os.listdir(path))
-    # dir_list.remove(".DS_Store")
-    # print(sorted(dir_list))
-
-    # for folder in dir_list:
-    #     print(folder + "-----------------")
-    #     sub_path = path + "/" + folder
-    #     print(sub_path)
-        
-    #     files = sorted(os.listdir(sub_path))
-    
-
-    #     print(files)
-
     batchStartPosition = batchSize * (batchNumber-1)
     batchEndPosition = batchStartPosition + batchSize
 
     # print("All: " + str(fileNames))
-    print("Getting batch number " + str(batchNumber) + " of size " + str(batchSize) + " for " + folderPath)
+    # print("Getting batch number " + str(batchNumber) + " of size " + str(batchSize) + " for " + folderPath)
 
     batchFileNames = []
     if (batchSize > len(fileNames) and batchNumber == 1):
@@ -69,9 +54,6 @@ def getBatch(batchSize, batchNumber, fileNames, folderPath):
         url = data["url"]
         content = data["content"]
         encoding = data["encoding"]
-
-        if (url.endswith('xml')):
-            print(url)
 
         batchDocument = BatchDocument(url, content, encoding)
         batchDocuments.append(batchDocument)
