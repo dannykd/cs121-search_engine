@@ -90,10 +90,6 @@ def buildIndex():
             batchFileNumber += 1 
             fileName = f'indexes/disk-{batchFileNumber}.txt'
             
-            f = open(fileName, "w")
-            f.write(str(invertedIndex))
-            f.close()
-
             sortAndWriteToDisk(invertedIndex, fileName)
             invertedIndex.clear()
 
