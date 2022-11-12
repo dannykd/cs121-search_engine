@@ -110,12 +110,13 @@ def buildIndex():
             invertedIndex.clear()
 
     # merge index back into one dictionary mergedIndex
-    mergedIndex = None
+
+    mergedIndex = mergeDisksIntoDict()
     print(f'Number of Documents : {docID}')
     print(f'Number of Unique Tokens : {len(mergedIndex.keys())}')
 
     # write mergedIndex to an output file to read file size on disk
-    mergedFileName = 'indexes/final.txt'
+    
     # write to mergedFileName
 
     #print(f'Size of Index on Disk : FIND FUNCTION TO DO THIS') -- reading size of mergedFileName
