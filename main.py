@@ -1,6 +1,7 @@
 import re, json
 import os
 from bs4 import BeautifulSoup
+import time
 
 # BatchDocument takes in a url, the content, and the encoding for any specific json file given to us in the DEV folder
 # given the content, BatchDocument will tokenize the content and save it into a variable, tokens
@@ -24,7 +25,7 @@ class Posting:
     def to_dict(self):
         return dict(docid=self.docid, tfidf=self.tfidf, fields=self.fields)
 
-import time
+
 
 def getBatch(batchSize, batchNumber, fileNames, folderPath): 
     #gets a batch of documents from /DEV, if there's no more documents it returns an empty list
@@ -69,7 +70,7 @@ def getBatch(batchSize, batchNumber, fileNames, folderPath):
     return batchDocuments
 
 def sortAndWriteToDisk(index, fileName):
-    with open(fileName,'w') as diskFile: #opens file or creates file or rewrites file 
+    with open(fileName,'w+') as diskFile: #opens file or creates file or rewrites file 
       diskFile.write(json.dumps(index, sort_keys=True))
     return None
 
@@ -91,6 +92,7 @@ def mergeDisksIntoDict():
 def buildIndex():
     docID = 0
     invertedIndex = dict()
+    IDToUrl = dict()
     folders = getFolders("DEV")
     batchFileNumber = 0
     batchSize = 500
@@ -104,7 +106,9 @@ def buildIndex():
             currBatch +=1
             
             for document in documentsInBatch:
+                
                 docID+=1
+                IDToUrl[docID] = document.url
                 tokensWithNoDuplicate = set(document.tokens)
                 for token in tokensWithNoDuplicate:
                     if token in invertedIndex.keys():
@@ -119,9 +123,10 @@ def buildIndex():
             sortAndWriteToDisk(invertedIndex, fileName)
             invertedIndex.clear()
 
-    # merge index back into one dictionary mergedIndex
+    sortAndWriteToDisk(IDToUrl, "/urlMappings.txt") #put the url mappings into memory
+    
 
-    mergedIndex = mergeDisksIntoDict()
+    mergedIndex = mergeDisksIntoDict() # merge index back into one dictionary mergedIndex
     print(f'Number of Documents : {docID}')
     print(f'Number of Unique Tokens : {len(mergedIndex.keys())}')
 
@@ -151,6 +156,11 @@ def getFolders(parentFolder):
 def getFilesInFolder(folderName):
     files = sorted(os.listdir(folderName))
     return files
+
+def search(query):
+    with open(f'indexes/final.txt' , 'r+') as indexFile:
+        index = json.load(indexFile)
+    
 
 if __name__ == '__main__':
     start = time.time()
