@@ -123,7 +123,7 @@ def buildIndex():
             sortAndWriteToDisk(invertedIndex, fileName)
             invertedIndex.clear()
 
-    sortAndWriteToDisk(IDToUrl, "/urlMappings.txt") #put the url mappings into memory
+    sortAndWriteToDisk(IDToUrl, "mappings/urlMappings.txt") #put the url mappings into memory
     
 
     mergedIndex = mergeDisksIntoDict() # merge index back into one dictionary mergedIndex
@@ -162,6 +162,8 @@ def search(query):
         index = json.load(indexFile)
     
     queryTokens = tokenize(query)
+ 
+
 
 if __name__ == '__main__':
     start = time.time()
