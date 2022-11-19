@@ -161,6 +161,7 @@ def search(query):
     with open(f'indexes/final.txt' , 'r+') as indexFile:
         index = json.load(indexFile)
     
+    queryTokens = tokenize(query)
 
 if __name__ == '__main__':
     start = time.time()
