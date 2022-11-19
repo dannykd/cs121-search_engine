@@ -9,12 +9,15 @@ class BatchDocument:
     def __init__(self, url, content, encoding):
         self.url = url
         self.encoding = encoding
+        self.tokens = []
         # create beautiful soup object to parse the given content string and find the body tag and the content within it
         soup = BeautifulSoup(content, "html.parser")
         textContent = ""
         for tag in soup.find_all('body'):
             textContent += " " + tag.getText()
-        self.tokens = tokenize(textContent) # return the tokenized textContent
+        tokens = tokenize(textContent) # return the tokenized textContent
+        for token in tokens: #convert tokens to lower case
+            self.tokens.append(token.lower())
     
 class Posting:
     def __init__(self, docid, tfidf):
@@ -112,10 +115,10 @@ def buildIndex():
                 tokensWithNoDuplicate = set(document.tokens)
                 for token in tokensWithNoDuplicate:
                     if token in invertedIndex.keys():
-                        docPosting = Posting(docID, document.tokens.count(token)).to_dict()
-                        invertedIndex[token].append(docPosting)
+                        docPosting = Posting(docID, document.tokens.count(token.lower())).to_dict()
+                        invertedIndex[token.lower()].append(docPosting)
                     else:
-                        invertedIndex[token] = [Posting(docID, document.tokens.count(token)).to_dict()]
+                        invertedIndex[token.lower()] = [Posting(docID, document.tokens.count(token.lower())).to_dict()]
 
             batchFileNumber += 1 
             fileName = f'indexes/disk-{batchFileNumber}.txt'
@@ -158,18 +161,61 @@ def getFilesInFolder(folderName):
     return files
 
 def search(query):
+    
+    matchedDocs = []
     with open(f'indexes/final.txt' , 'r+') as indexFile:
         index = json.load(indexFile)
     
+    docTokenCount = dict() #key will be a docID, value is the number of tokens in the query that are in that token
+    #i.e, if the value is len(queryTokens) then that document contains atleast 1 of every token in the query
     queryTokens = tokenize(query)
+    for token in queryTokens:
+        tokenPostings = index[token]
+        for posting in tokenPostings:
+            if posting["docid"] in docTokenCount.keys():
+                docTokenCount[posting["docid"]] += 1
+            else:
+                docTokenCount[posting["docid"]] = 1
+    
+    
+    for docid, tokenMatches in docTokenCount.items():
+        if tokenMatches == len(queryTokens):
+            matchedDocs.append(str(docid))
+
+    return matchedDocs
+
+def getUrlMappingFromDisk():
+    with open(f'mappings/urlMappings.txt' , 'r+') as mappingFile:
+        urlMappings = json.load(mappingFile)
+
+    return urlMappings
+    
+
+
+        
  
 
 
 if __name__ == '__main__':
     start = time.time()
-    buildIndex()
-    print("--- FINISHED BUILDING INDICES IN %s seconds ---" % (time.time() - start))
-    print("--- FINISHED BUILDING INDICES IN %s minutes ---" % (time.time() - start / 60))
+    #buildIndex()
+    #print("--- FINISHED BUILDING INDICES IN %s seconds ---" % (time.time() - start))
+    #print("--- FINISHED BUILDING INDICES IN %s minutes ---" % (time.time() - start / 60))
+
+    querys = [
+        "cristina lopes",
+        "machine learning",
+        "ACM",
+        "master of software engineering"
+    ]
+
+    for query in querys:
+        print()
+        print(query)
+        matchedDocs = search(query.lower())
+        urlMappings = getUrlMappingFromDisk()
+        for docid in matchedDocs:
+            print(f'{urlMappings[docid]}')
 
     # files = ['25ab7a717ab32cbdc126dd69dc405451d63b7eb55b21d4384a2847cd802e73ec.json', '358e172599eeb10e5fe57b7befea5113233b334eb13492c4adf694945c69b4d1.json', '59cd2d37c5ff77fd43da46c122c76f1df4b288ab029182c901c11ee01794896a.json', '7ab99efdcd4dfa1251cbc3ef75875758491308240d6e8efc633599b7c094551b.json', '897b5c4dc19303a9a3fffd0d9d49fc831d7b52072b29446f97900ac58fc4181a.json', 'da5aff1b5ca2bad6609f97f11c91fef3a503ded6d9d0f14592793c9391b92fd9.json']
     # batch = getBatch(10, 1, files, "DEV/xtune_ics_uci_edu")
