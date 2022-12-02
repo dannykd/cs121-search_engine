@@ -156,7 +156,7 @@ def buildIndex():
                 IDToUrl[docID] = document.url
                 tokensWithNoDuplicate = set(document.tokens)
                 for token in tokensWithNoDuplicate: 
-                    tfidfForDoc = (1 + math.log(document.tokens.count(token.lower()),10)) * math.log((numOfDocs/dfDict[token]),10)
+                    tdidfForDoc = (1 + math.log(document.tokens.count(token.lower()),10)) * math.log((numOfDocs/dfDict[token]),10)
                     #calculate td-idf, i.e, (1+log(count of token in doc)) * log(num of documents / num of doc term occurs in)
                     #prolly write a function to get the total number of docs and number of document term occurs in
                     #log base 10 btw
@@ -229,12 +229,11 @@ def search(query):
                 docScore[posting["docid"]] = posting['tdidf']
     
     
-    #sort by score/sum of weights for that docid, return matched docs
-    #delete the code block under later
-    for docid, tokenMatches in docScore.items():
-        if tokenMatches == len(queryTokens):
-            matchedDocs.append(str(docid))
-
+    # #sort by score/sum of weights for that docid, return matched docs
+    # sort by highest to lowest docscore dict
+    docScoreSorted = sorted(docScore.items(), key=lambda x:x[1], reverse=True)
+    for docScore in docScoreSorted:
+        matchedDocs.append(docScore["docid"])
     return matchedDocs
 
 def getUrlMappingFromDisk():
