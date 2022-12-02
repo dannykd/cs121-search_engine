@@ -114,6 +114,8 @@ def buildIndex():
                 IDToUrl[docID] = document.url
                 tokensWithNoDuplicate = set(document.tokens)
                 for token in tokensWithNoDuplicate:
+                    #calculate td-idf, i.e, (1+log(count of token in doc)) * log(num of documents / num of doc term occurs in)
+                    #log base 10 btw
                     if token in invertedIndex.keys():
                         docPosting = Posting(docID, document.tokens.count(token.lower())).to_dict()
                         invertedIndex[token.lower()].append(docPosting)
@@ -166,18 +168,20 @@ def search(query):
     with open(f'indexes/final.txt' , 'r+') as indexFile:
         index = json.load(indexFile)
     
-    docTokenCount = dict() #key will be a docID, value is the number of tokens in the query that are in that token
+    docTokenCount = dict() #key will be a docID, value is the SCORE of that document
     #i.e, if the value is len(queryTokens) then that document contains atleast 1 of every token in the query
     queryTokens = tokenize(query)
     for token in queryTokens:
         tokenPostings = index[token]
         for posting in tokenPostings:
             if posting["docid"] in docTokenCount.keys():
-                docTokenCount[posting["docid"]] += 1
+                docTokenCount[posting["docid"]] += posting['td-idf']
             else:
-                docTokenCount[posting["docid"]] = 1
+                docTokenCount[posting["docid"]] = posting['td-idf']
     
     
+    #sort by score/sum of weights for that docid, return matched docs
+    #delete the code block under later
     for docid, tokenMatches in docTokenCount.items():
         if tokenMatches == len(queryTokens):
             matchedDocs.append(str(docid))
