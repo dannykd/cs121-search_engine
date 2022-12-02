@@ -138,7 +138,7 @@ def buildIndex():
                 IDToUrl[docID] = document.url
                 tokensWithNoDuplicate = set(document.tokens)
                 for token in tokensWithNoDuplicate: 
-                    tdidfForDoc = (1 + math.log(document.tokens.count(token.lower()),10)) * math.log((numOfDocs/dfDict[token]),10)
+                    tfidfForDoc = (1 + math.log(document.tokens.count(token.lower()),10)) * math.log((numOfDocs/dfDict[token]),10)
                     #calculate td-idf, i.e, (1+log(count of token in doc)) * log(num of documents / num of doc term occurs in)
                     #prolly write a function to get the total number of docs and number of document term occurs in
                     #log base 10 btw
