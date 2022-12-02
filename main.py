@@ -88,7 +88,26 @@ def mergeDisksIntoDict():
     sortAndWriteToDisk(mergedIndex, 'indexes/final.txt' )
     return mergedIndex
             
-
+def buildDfDict():
+    dfDict = dict() #token, number of docs that token appears in
+    folders = getFolders("DEV")
+    batchSize = 500
+    for folder in folders:
+        fileNames = getFilesInFolder(folder)
+        currBatch = 1
+        while True:
+            documentsInBatch = getBatch(batchSize, currBatch, fileNames, folder)
+            if not documentsInBatch:
+                break #end the loop if there's no more documents to process
+            currBatch +=1
+            
+            for document in documentsInBatch:
+                for token in set(document.tokens):
+                    if token in dfDict.keys():
+                        dfDict[token] +=1
+                    else:
+                        dfDict[token] = 1
+    return dfDict
 
 
 
