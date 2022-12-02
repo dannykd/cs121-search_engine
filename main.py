@@ -73,26 +73,21 @@ def getBatch(batchSize, batchNumber, fileNames, folderPath):
 
     return batchDocuments
 
-def sortAndWriteToDisk(index, fileName):
+def sortAndWriteToDisk(index: dict, fileName):
     if os.path.isfile(fileName):
         indexFile = open(fileName, "r")
         existingData = json.load(indexFile)
         indexFile.close()
 
-        token = list(index.keys())[0]
+        index.update(existingData)
 
-        if token in existingData:
-            existingData[token] += index[token]
-        else:
-            existingData[token] = index[token]
+        with open(fileName,'w+') as diskFile: #opens file or creates file or rewrites file 
+            diskFile.write(json.dumps(index, sort_keys=True))
 
-        with open(fileName,'w') as diskFile: #opens file or creates file or rewrites file 
-            diskFile.write(json.dumps(existingData, sort_keys=True))
-
-        return
+        return None
 
 
-    with open(fileName,'a+') as diskFile: #opens file or creates file or rewrites file 
+    with open(fileName,'w+') as diskFile: #opens file or creates file or rewrites file 
       diskFile.write(json.dumps(index, sort_keys=True))
     return None
 
@@ -258,7 +253,9 @@ if __name__ == '__main__':
         "cristina lopes",
         "machine learning",
         "ACM",
-        "master of software engineering"
+        "master of software engineering",
+        "software uci computer",
+        "testing hopefully"
     ]
 
     for query in querys:
