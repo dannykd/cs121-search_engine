@@ -74,7 +74,7 @@ def getBatch(batchSize, batchNumber, fileNames, folderPath):
     return batchDocuments
 
 def sortAndWriteToDisk(index, fileName):
-    with open(fileName,'w+') as diskFile: #opens file or creates file or rewrites file 
+    with open(fileName,'a+') as diskFile: #opens file or creates file or rewrites file 
       diskFile.write(json.dumps(index, sort_keys=True))
     return None
 
@@ -149,10 +149,11 @@ def buildIndex():
                     else:
                         invertedIndex[token.lower()] = [Posting(docID, tfidfForDoc).to_dict()]
 
+                    fileName = f'indexes/disk-{token[0].lower()}.txt'
+                    sortAndWriteToDisk(invertedIndex, fileName)
+
             batchFileNumber += 1 
-            fileName = f'indexes/disk-{batchFileNumber}.txt'
-            
-            sortAndWriteToDisk(invertedIndex, fileName)
+          
             invertedIndex.clear()
 
     sortAndWriteToDisk(IDToUrl, "mappings/urlMappings.txt") #put the url mappings into memory
@@ -192,13 +193,16 @@ def getFilesInFolder(folderName):
 def search(query):
     
     matchedDocs = []
-    with open(f'indexes/final.txt' , 'r+') as indexFile:
-        index = json.load(indexFile)
     
     docScore = dict() #key will be a docID, value is the SCORE of that document
     #i.e, if the value is len(queryTokens) then that document contains atleast 1 of every token in the query
     queryTokens = tokenize(query)
     for token in queryTokens:
+        #find the disk file that has that token
+        #ex. json.loads(disk-5.txt)
+        with open(f'indexes/disk-{token[0].lower()}' , 'r+') as indexFile:
+            index = json.load(indexFile)
+    
         tokenPostings = index[token]
         for posting in tokenPostings:
             if posting["docid"] in docScore.keys():
