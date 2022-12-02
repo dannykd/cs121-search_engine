@@ -142,12 +142,12 @@ def buildIndex():
                     #calculate td-idf, i.e, (1+log(count of token in doc)) * log(num of documents / num of doc term occurs in)
                     #prolly write a function to get the total number of docs and number of document term occurs in
                     #log base 10 btw
-                    #tfidfForDoc = 0
+                    #tdidfForDoc = 0
                     if token in invertedIndex.keys():
-                        docPosting = Posting(docID, tfidfForDoc).to_dict()
+                        docPosting = Posting(docID, tdidfForDoc).to_dict()
                         invertedIndex[token.lower()].append(docPosting)
                     else:
-                        invertedIndex[token.lower()] = [Posting(docID, tfidfForDoc).to_dict()]
+                        invertedIndex[token.lower()] = [Posting(docID, tdidfForDoc).to_dict()]
 
                     fileName = f'indexes/disk-{token[0].lower()}.txt'
                     sortAndWriteToDisk(invertedIndex, fileName)
