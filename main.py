@@ -76,13 +76,13 @@ def getBatch(batchSize, batchNumber, fileNames, folderPath):
 def sortAndWriteToDisk(index: dict, fileName):
     if os.path.isfile(fileName):
         indexFile = open(fileName, "r")
-        existingData = json.load(indexFile)
+        existingData:dict = json.load(indexFile)
         indexFile.close()
 
-        index.update(existingData)
+        existingData.update(index)
 
         with open(fileName,'w+') as diskFile: #opens file or creates file or rewrites file 
-            diskFile.write(json.dumps(index, sort_keys=True))
+            diskFile.write(json.dumps(existingData, sort_keys=True))
 
         return None
 
@@ -136,6 +136,46 @@ def buildIndex():
     batchFileNumber = 0
     batchSize = 500
     dfDict, numOfDocs = buildDfDict()
+
+    invertedIndex = {
+        "a":dict(),
+        "b":dict(),
+        "c":dict(),
+        "d":dict(),
+        "e":dict(),
+        "f":dict(),
+        "g":dict(),
+        "h":dict(),
+        "i":dict(),
+        "j":dict(),
+        "k":dict(),
+        "l":dict(),
+        "m":dict(),
+        "n":dict(),
+        "o":dict(),
+        "p":dict(),
+        "q":dict(),
+        "r":dict(),
+        "s":dict(),
+        "t":dict(),
+        "u":dict(),
+        "v":dict(),
+        "w":dict(),
+        "x":dict(),
+        "y":dict(),
+        "z":dict(),
+        "0":dict(),
+        "1":dict(),
+        "2":dict(),
+        "3":dict(),
+        "4":dict(),
+        "5":dict(),
+        "6":dict(),
+        "7":dict(),
+        "8":dict(),
+        "9":dict(),
+    }
+
     for folder in folders:
         fileNames = getFilesInFolder(folder)
         currBatch = 1
@@ -158,13 +198,16 @@ def buildIndex():
                     #tdidfForDoc = 0
                     if token in invertedIndex.keys():
                         docPosting = Posting(docID, tdidfForDoc).to_dict()
-                        invertedIndex[token.lower()].append(docPosting)
+                        invertedIndex[token[0].lower()][token.lower()].append(docPosting)
                     else:
-                        invertedIndex[token.lower()] = [Posting(docID, tdidfForDoc).to_dict()]
+                        invertedIndex[token[0].lower()][token.lower()] = [Posting(docID, tdidfForDoc).to_dict()]
 
-                    fileName = f'indexes/disk-{token[0].lower()}.txt'
-                    sortAndWriteToDisk(invertedIndex, fileName)
-                    invertedIndex.clear()
+                  
+            
+            for k, v in invertedIndex.items():
+                fileName = f'indexes/disk-{k}.txt'
+                sortAndWriteToDisk(v, fileName)
+            invertedIndex.clear()
 
 
             batchFileNumber += 1 
