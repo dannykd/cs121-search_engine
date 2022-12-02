@@ -74,6 +74,8 @@ def getBatch(batchSize, batchNumber, fileNames, folderPath):
     return batchDocuments
 
 def sortAndWriteToDisk(index: dict, fileName):
+    print("WRITING INDEX " + str(index))
+
     if os.path.isfile(fileName):
         indexFile = open(fileName, "r")
         existingData:dict = json.load(indexFile)
@@ -176,6 +178,8 @@ def buildIndex():
         "9":dict(),
     }
 
+    print("STARTING BUILD INDEX")
+
     for folder in folders:
         fileNames = getFilesInFolder(folder)
         currBatch = 1
@@ -191,16 +195,25 @@ def buildIndex():
                 IDToUrl[docID] = document.url
                 tokensWithNoDuplicate = set(document.tokens)
                 for token in tokensWithNoDuplicate: 
-                    tdidfForDoc = (1 + math.log(document.tokens.count(token.lower()),10)) * math.log((numOfDocs/dfDict[token]),10)
+                    tfidfForDoc = (1 + math.log(document.tokens.count(token.lower()),10)) * math.log((numOfDocs/dfDict[token]),10)
                     #calculate td-idf, i.e, (1+log(count of token in doc)) * log(num of documents / num of doc term occurs in)
                     #prolly write a function to get the total number of docs and number of document term occurs in
                     #log base 10 btw
-                    #tdidfForDoc = 0
-                    if token in invertedIndex.keys():
-                        docPosting = Posting(docID, tdidfForDoc).to_dict()
+                    #tfidfForDoc = 0
+                    # if token[0].lower() in invertedIndex.keys():
+                    docPosting = Posting(docID, tfidfForDoc).to_dict()
+
+                    if token[0].lower() not in invertedIndex.keys():
+                        invertedIndex[token[0].lower()] = {}
+                    
+                    if token.lower() in invertedIndex[token[0].lower()]:
                         invertedIndex[token[0].lower()][token.lower()].append(docPosting)
                     else:
-                        invertedIndex[token[0].lower()][token.lower()] = [Posting(docID, tdidfForDoc).to_dict()]
+                        invertedIndex[token[0].lower()][token.lower()] = [docPosting]
+
+                    # else:
+                    #     invertedIndex[token[0].lower()] = dict()
+                    #     invertedIndex[token[0].lower()][token.lower()] = [Posting(docID, tfidfForDoc).to_dict()]
 
                   
             
@@ -237,7 +250,8 @@ def tokenize(text):
 
 def getFolders(parentFolder):
     subfolders = sorted(os.listdir(parentFolder))
-    subfolders.remove(".DS_Store")
+    if (".DS_Store") in subfolders:
+        subfolders.remove(".DS_Store")
     # print(sorted(dir_list))
     subFoldersWithParentPath = [(parentFolder + "/" + i) for i in subfolders]
     return sorted(subFoldersWithParentPath)
@@ -256,15 +270,15 @@ def search(query):
     for token in queryTokens:
         #find the disk file that has that token
         #ex. json.loads(disk-5.txt)
-        with open(f'indexes/disk-{token[0].lower()}' , 'r+') as indexFile:
+        with open(f'indexes/disk-{token[0].lower()}.txt' , 'r+') as indexFile:
             index = json.load(indexFile)
     
         tokenPostings = index[token]
         for posting in tokenPostings:
             if posting["docid"] in docScore.keys():
-                docScore[posting["docid"]] += posting['tdidf']
+                docScore[posting["docid"]] += posting['tfidf']
             else:
-                docScore[posting["docid"]] = posting['tdidf']
+                docScore[posting["docid"]] = posting['tfidf']
     
     
     # #sort by score/sum of weights for that docid, return matched docs
@@ -287,9 +301,9 @@ def getUrlMappingFromDisk():
 
 
 if __name__ == '__main__':
-    start = time.time()
-    #buildIndex()
-    #print("--- FINISHED BUILDING INDICES IN %s seconds ---" % (time.time() - start))
+    # start = time.time()
+    # buildIndex()
+    # print("--- FINISHED BUILDING INDICES IN %s seconds ---" % (time.time() - start))
     #print("--- FINISHED BUILDING INDICES IN %s minutes ---" % (time.time() - start / 60))
 
     querys = [
