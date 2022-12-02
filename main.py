@@ -115,12 +115,14 @@ def buildIndex():
                 tokensWithNoDuplicate = set(document.tokens)
                 for token in tokensWithNoDuplicate:
                     #calculate td-idf, i.e, (1+log(count of token in doc)) * log(num of documents / num of doc term occurs in)
+                    #prolly write a function to get the total number of docs and number of document term occurs in
                     #log base 10 btw
+                    tfidfForDoc = 0
                     if token in invertedIndex.keys():
-                        docPosting = Posting(docID, document.tokens.count(token.lower())).to_dict()
+                        docPosting = Posting(docID, tfidfForDoc).to_dict()
                         invertedIndex[token.lower()].append(docPosting)
                     else:
-                        invertedIndex[token.lower()] = [Posting(docID, document.tokens.count(token.lower())).to_dict()]
+                        invertedIndex[token.lower()] = [Posting(docID, tfidfForDoc).to_dict()]
 
             batchFileNumber += 1 
             fileName = f'indexes/disk-{batchFileNumber}.txt'
@@ -175,9 +177,9 @@ def search(query):
         tokenPostings = index[token]
         for posting in tokenPostings:
             if posting["docid"] in docTokenCount.keys():
-                docTokenCount[posting["docid"]] += posting['td-idf']
+                docTokenCount[posting["docid"]] += posting['tdidf']
             else:
-                docTokenCount[posting["docid"]] = posting['td-idf']
+                docTokenCount[posting["docid"]] = posting['tdidf']
     
     
     #sort by score/sum of weights for that docid, return matched docs
