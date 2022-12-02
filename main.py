@@ -170,21 +170,21 @@ def search(query):
     with open(f'indexes/final.txt' , 'r+') as indexFile:
         index = json.load(indexFile)
     
-    docTokenCount = dict() #key will be a docID, value is the SCORE of that document
+    docScore = dict() #key will be a docID, value is the SCORE of that document
     #i.e, if the value is len(queryTokens) then that document contains atleast 1 of every token in the query
     queryTokens = tokenize(query)
     for token in queryTokens:
         tokenPostings = index[token]
         for posting in tokenPostings:
-            if posting["docid"] in docTokenCount.keys():
-                docTokenCount[posting["docid"]] += posting['tdidf']
+            if posting["docid"] in docScore.keys():
+                docScore[posting["docid"]] += posting['tdidf']
             else:
-                docTokenCount[posting["docid"]] = posting['tdidf']
+                docScore[posting["docid"]] = posting['tdidf']
     
     
     #sort by score/sum of weights for that docid, return matched docs
     #delete the code block under later
-    for docid, tokenMatches in docTokenCount.items():
+    for docid, tokenMatches in docScore.items():
         if tokenMatches == len(queryTokens):
             matchedDocs.append(str(docid))
 
