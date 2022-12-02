@@ -228,7 +228,7 @@ def search(query):
     # sort by highest to lowest docscore dict
     docScoreSorted = sorted(docScore.items(), key=lambda x:x[1], reverse=True)
     for docScore in docScoreSorted:
-        matchedDocs.append(docScore["docid"])
+        matchedDocs.append(docScore[0])
     return matchedDocs
 
 def getUrlMappingFromDisk():
