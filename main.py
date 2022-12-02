@@ -74,6 +74,24 @@ def getBatch(batchSize, batchNumber, fileNames, folderPath):
     return batchDocuments
 
 def sortAndWriteToDisk(index, fileName):
+    if os.path.isfile(fileName):
+        indexFile = open(fileName, "r")
+        existingData = json.load(indexFile)
+        indexFile.close()
+
+        token = list(index.keys())[0]
+
+        if token in existingData:
+            existingData[token] += index[token]
+        else:
+            existingData[token] = index[token]
+
+        with open(fileName,'w') as diskFile: #opens file or creates file or rewrites file 
+            diskFile.write(json.dumps(existingData, sort_keys=True))
+
+        return
+
+
     with open(fileName,'a+') as diskFile: #opens file or creates file or rewrites file 
       diskFile.write(json.dumps(index, sort_keys=True))
     return None
@@ -151,11 +169,11 @@ def buildIndex():
 
                     fileName = f'indexes/disk-{token[0].lower()}.txt'
                     sortAndWriteToDisk(invertedIndex, fileName)
+                    invertedIndex.clear()
+
 
             batchFileNumber += 1 
           
-            invertedIndex.clear()
-
     sortAndWriteToDisk(IDToUrl, "mappings/urlMappings.txt") #put the url mappings into memory
     
 
