@@ -2,6 +2,7 @@ import re, json
 import os
 from bs4 import BeautifulSoup
 import time
+import math
 
 # BatchDocument takes in a url, the content, and the encoding for any specific json file given to us in the DEV folder
 # given the content, BatchDocument will tokenize the content and save it into a variable, tokens
@@ -109,7 +110,8 @@ def buildDfDict():
                         dfDict[token] +=1
                     else:
                         dfDict[token] = 1
-    return dfDict
+    
+    return (dfDict,numDocs)
 
 
 
@@ -120,6 +122,7 @@ def buildIndex():
     folders = getFolders("DEV")
     batchFileNumber = 0
     batchSize = 500
+    dfDict, numOfDocs = buildDfDict()
     for folder in folders:
         fileNames = getFilesInFolder(folder)
         currBatch = 1
@@ -134,11 +137,12 @@ def buildIndex():
                 docID+=1
                 IDToUrl[docID] = document.url
                 tokensWithNoDuplicate = set(document.tokens)
-                for token in tokensWithNoDuplicate:
+                for token in tokensWithNoDuplicate: 
+                    tdidfForDoc = (1 + math.log(document.tokens.count(token.lower()),10)) * math.log((numOfDocs/dfDict[token]),10)
                     #calculate td-idf, i.e, (1+log(count of token in doc)) * log(num of documents / num of doc term occurs in)
                     #prolly write a function to get the total number of docs and number of document term occurs in
                     #log base 10 btw
-                    tfidfForDoc = 0
+                    #tfidfForDoc = 0
                     if token in invertedIndex.keys():
                         docPosting = Posting(docID, tfidfForDoc).to_dict()
                         invertedIndex[token.lower()].append(docPosting)
