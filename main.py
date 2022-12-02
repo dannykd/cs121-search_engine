@@ -89,6 +89,7 @@ def mergeDisksIntoDict():
     return mergedIndex
             
 def buildDfDict():
+    numDocs = 0
     dfDict = dict() #token, number of docs that token appears in
     folders = getFolders("DEV")
     batchSize = 500
@@ -102,6 +103,7 @@ def buildDfDict():
             currBatch +=1
             
             for document in documentsInBatch:
+                numDocs += 1
                 for token in set(document.tokens):
                     if token in dfDict.keys():
                         dfDict[token] +=1
