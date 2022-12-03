@@ -3,6 +3,8 @@ import os
 from bs4 import BeautifulSoup
 import time
 import math
+import orjson
+
 
 # BatchDocument takes in a url, the content, and the encoding for any specific json file given to us in the DEV folder
 # given the content, BatchDocument will tokenize the content and save it into a variable, tokens
@@ -81,7 +83,12 @@ def sortAndWriteToDisk(index: dict, fileName):
         existingData:dict = json.load(indexFile)
         indexFile.close()
 
-        existingData.update(index)
+        for token in existingData.keys():
+            if token in index.keys():
+                existingData[token] = existingData[token] + index[token] #combine the postings array of the existing index with new index
+                del index[token] #delete the token from the new index since we combined it already
+
+        existingData.update(index) #update the existing array to add the new keys (tokens) from new array
 
         with open(fileName,'w+') as diskFile: #opens file or creates file or rewrites file 
             diskFile.write(json.dumps(existingData, sort_keys=True))
@@ -216,14 +223,14 @@ def buildIndex():
                     #     invertedIndex[token[0].lower()][token.lower()] = [Posting(docID, tfidfForDoc).to_dict()]
 
                   
-            
-            for k, v in invertedIndex.items():
-                fileName = f'indexes/disk-{k}.txt'
-                sortAndWriteToDisk(v, fileName)
-            invertedIndex.clear()
-
-
             batchFileNumber += 1 
+            
+        for k, v in invertedIndex.items():
+            fileName = f'indexes/disk-{k}.txt'
+            sortAndWriteToDisk(v, fileName)
+        invertedIndex.clear()
+
+
           
     sortAndWriteToDisk(IDToUrl, "mappings/urlMappings.txt") #put the url mappings into memory
     
@@ -265,13 +272,16 @@ def search(query):
     matchedDocs = []
     
     docScore = dict() #key will be a docID, value is the SCORE of that document
+   
+    docScoreHeap = [] #heap to try to optimize, rather than sorting a dictionary
     #i.e, if the value is len(queryTokens) then that document contains atleast 1 of every token in the query
     queryTokens = tokenize(query)
     for token in queryTokens:
         #find the disk file that has that token
         #ex. json.loads(disk-5.txt)
         with open(f'indexes/disk-{token[0].lower()}.txt' , 'r+') as indexFile:
-            index = json.load(indexFile)
+            index = orjson.loads(indexFile.read())
+            
 
         if token in index.keys():
             tokenPostings = index[token]
@@ -284,8 +294,10 @@ def search(query):
     
     # #sort by score/sum of weights for that docid, return matched docs
     # sort by highest to lowest docscore dict
+
     docScoreSorted = sorted(docScore.items(), key=lambda x:x[1], reverse=True)
-    for docScore in docScoreSorted:
+ 
+    for docScore in docScoreSorted[:5]:
         matchedDocs.append(docScore[0])
     return matchedDocs
 
@@ -299,7 +311,7 @@ def search_from_client(query:str):
         #find the disk file that has that token
         #ex. json.loads(disk-5.txt)
         with open(f'indexes/disk-{token[0].lower()}.txt' , 'r+') as indexFile:
-            index = json.load(indexFile)
+            index = orjson.loads(indexFile.read())
 
         if token in index.keys():
             tokenPostings = index[token]
@@ -313,10 +325,11 @@ def search_from_client(query:str):
     # #sort by score/sum of weights for that docid, return matched docs
     # sort by highest to lowest docscore dict
     docScoreSorted = sorted(docScore.items(), key=lambda x:x[1], reverse=True)
+    
     urlMappings = getUrlMappingFromDisk()
-    for docScore in docScoreSorted:
+    for docScore in docScoreSorted[:5]:
         matchedDocs.append(urlMappings[str(docScore[0])])
-    return matchedDocs[:5]
+    return matchedDocs
 
 
 def getUrlMappingFromDisk():
@@ -333,7 +346,7 @@ def getUrlMappingFromDisk():
 
 if __name__ == '__main__':
     # start = time.time()
-    # buildIndex()
+    #buildIndex()
     # print("--- FINISHED BUILDING INDICES IN %s seconds ---" % (time.time() - start))
     #print("--- FINISHED BUILDING INDICES IN %s minutes ---" % (time.time() - start / 60))
 

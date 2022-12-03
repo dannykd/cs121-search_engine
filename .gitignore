@@ -1,4 +1,5 @@
 # ignore the huge /DEV file, instead we'll add it locally
 DEV/
 /DEV
-
+indexes/
+/indexes
