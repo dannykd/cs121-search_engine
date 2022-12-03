@@ -272,14 +272,15 @@ def search(query):
         #ex. json.loads(disk-5.txt)
         with open(f'indexes/disk-{token[0].lower()}.txt' , 'r+') as indexFile:
             index = json.load(indexFile)
-    
-        tokenPostings = index[token]
-        for posting in tokenPostings:
-            if posting["docid"] in docScore.keys():
-                docScore[posting["docid"]] += posting['tfidf']
-            else:
-                docScore[posting["docid"]] = posting['tfidf']
-    
+
+        if token in index.keys():
+            tokenPostings = index[token]
+            for posting in tokenPostings:
+                if posting["docid"] in docScore.keys():
+                    docScore[posting["docid"]] += posting['tfidf']
+                else:
+                    docScore[posting["docid"]] = posting['tfidf']
+        
     
     # #sort by score/sum of weights for that docid, return matched docs
     # sort by highest to lowest docscore dict
@@ -287,6 +288,36 @@ def search(query):
     for docScore in docScoreSorted:
         matchedDocs.append(docScore[0])
     return matchedDocs
+
+def search_from_client(query:str):
+    matchedDocs = []
+    
+    docScore = dict() #key will be a docID, value is the SCORE of that document
+    #i.e, if the value is len(queryTokens) then that document contains atleast 1 of every token in the query
+    queryTokens = tokenize(query)
+    for token in queryTokens:
+        #find the disk file that has that token
+        #ex. json.loads(disk-5.txt)
+        with open(f'indexes/disk-{token[0].lower()}.txt' , 'r+') as indexFile:
+            index = json.load(indexFile)
+
+        if token in index.keys():
+            tokenPostings = index[token]
+            for posting in tokenPostings:
+                if posting["docid"] in docScore.keys():
+                    docScore[posting["docid"]] += posting['tfidf']
+                else:
+                    docScore[posting["docid"]] = posting['tfidf']
+        
+    
+    # #sort by score/sum of weights for that docid, return matched docs
+    # sort by highest to lowest docscore dict
+    docScoreSorted = sorted(docScore.items(), key=lambda x:x[1], reverse=True)
+    urlMappings = getUrlMappingFromDisk()
+    for docScore in docScoreSorted:
+        matchedDocs.append(urlMappings[str(docScore[0])])
+    return matchedDocs[:5]
+
 
 def getUrlMappingFromDisk():
     with open(f'mappings/urlMappings.txt' , 'r+') as mappingFile:
